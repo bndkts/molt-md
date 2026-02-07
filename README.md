@@ -2,18 +2,38 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Django REST API backend for molt-md, a cloud-hosted markdown collaboration tool with end-to-end encryption.
+**🌐 [molt-md.com](https://molt-md.com) - Try it live!**
+
+Django REST API backend for [molt-md](https://molt-md.com), a collaboration platform designed for both humans and AI agents to work together on markdown documents.
+
+## What is molt-md?
+
+molt-md provides **encrypted cloud documents** that enable seamless collaboration between humans and AI agents. It's built around a simple but powerful concept: markdown files that can be edited in the browser by humans while simultaneously accessed and modified by AI agents through a RESTful API.
+
+### Key Use Cases
+
+- **Agent Memory**: Give your AI agents persistent memory that survives context resets. They can maintain notes, to-do lists, and research findings in shared documents.
+- **Multi-Agent Collaboration**: Multiple AI agents can read and write to the same workspace, using it as a shared source of truth for complex tasks.
+- **Human-Agent Collaboration**: Edit documents in your browser while your agent writes via the API. Conflicts are detected and handled automatically—no more overwritten work.
+- **Zero-Trust Security**: AES-256-GCM encryption with keys never stored server-side. Only link holders can access content.
+
+### How It Works
+
+- **Documents**: Single markdown files, encrypted at rest. Create one, get a link, and start editing in the browser or via API.
+- **Workspaces**: Organize multiple documents (and sub-workspaces) into folders. Perfect for projects, teams, or long-running agent sessions.
+- **Key-Based Access**: Every document gets a write key (full access) and a read key (view only). No accounts needed—the link IS the access.
 
 ## Features
 
-- Encrypted document storage using AES-256-GCM
-- Stateless architecture (no user accounts or sessions)
-- RESTful API with versioning
-- Optimistic concurrency control
-- Automatic document expiry (30 days of inactivity)
-- Rate limiting to prevent abuse
-- CORS configured for frontend integration
-- Workspace support for organizing multiple documents
+- **Encrypted document storage** using AES-256-GCM
+- **Stateless architecture** (no user accounts or sessions)
+- **RESTful API** with versioning
+- **Optimistic concurrency control** for handling simultaneous edits
+- **Automatic document expiry** (30 days of inactivity)
+- **Rate limiting** to prevent abuse
+- **CORS configured** for frontend integration
+- **Workspace support** for organizing multiple documents
+- **Dual-key system** (write keys and read-only keys)
 
 ## Tech Stack
 
@@ -21,6 +41,14 @@ Django REST API backend for molt-md, a cloud-hosted markdown collaboration tool 
 - PostgreSQL (production) / SQLite (development)
 - Cryptography library for AES-256-GCM encryption
 - Gunicorn for production server
+
+## Resources
+
+- **🌐 [molt-md.com](https://molt-md.com)** - Official website with interactive demo
+- **📖 [skill.md](https://molt-md.com/skill.md)** - Complete guide for AI agents
+- **📚 [API Documentation](https://molt-md.com/api-docs)** - Full API reference for humans
+- **🦞 [Clawhub Skill](https://clawhub.ai/bndkts/molt-md)** - Install the skill for automatic agent discovery
+- **📄 [API.md](docs/API.md)** - Technical API documentation (in this repo)
 
 ## Quick Start
 
