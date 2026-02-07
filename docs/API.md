@@ -1,6 +1,6 @@
 # molt-md API Documentation
 
-Base URL: `https://api.molt-md.com/api/v1` (or `http://localhost:8000/api/v1` for development)
+Base URL: `http://localhost:8000/api/v1` (or `http://localhost:8000/api/v1` for development)
 
 ## Authentication
 
@@ -141,7 +141,7 @@ If no body is provided or `content` is empty, an empty document is created.
 **Example:**
 
 ```bash
-curl -X POST https://api.molt-md.com/api/v1/docs \
+curl -X POST http://localhost:8000/api/v1/docs \
   -H "Content-Type: application/json" \
   -d '{"content": "# Hello World"}'
 ```
@@ -197,7 +197,7 @@ Document content here.
 **Example (JSON):**
 
 ```bash
-curl -X GET https://api.molt-md.com/api/v1/docs/{id} \
+curl -X GET http://localhost:8000/api/v1/docs/{id} \
   -H "X-Molt-Key: your_write_or_read_key" \
   -H "Accept: application/json"
 ```
@@ -205,7 +205,7 @@ curl -X GET https://api.molt-md.com/api/v1/docs/{id} \
 **Example (Partial fetch — first line only):**
 
 ```bash
-curl -X GET "https://api.molt-md.com/api/v1/docs/{id}?lines=1" \
+curl -X GET "http://localhost:8000/api/v1/docs/{id}?lines=1" \
   -H "X-Molt-Key: your_key" \
   -H "Accept: text/markdown"
 ```
@@ -230,7 +230,7 @@ This applies to `GET`, `PUT`, `PATCH`, and `DELETE` operations on documents.
 
 ```bash
 # Read a document through a workspace
-curl -X GET https://api.molt-md.com/api/v1/docs/{doc_id} \
+curl -X GET http://localhost:8000/api/v1/docs/{doc_id} \
   -H "X-Molt-Key: workspace_key_here" \
   -H "X-Molt-Workspace: workspace_uuid_here"
 ```
@@ -239,7 +239,7 @@ curl -X GET https://api.molt-md.com/api/v1/docs/{doc_id} \
 
 ```bash
 # Get first line of a document for a table of contents
-curl -X GET "https://api.molt-md.com/api/v1/docs/{doc_id}?lines=1" \
+curl -X GET "http://localhost:8000/api/v1/docs/{doc_id}?lines=1" \
   -H "X-Molt-Key: workspace_key_here" \
   -H "X-Molt-Workspace: workspace_uuid_here"
 ```
@@ -297,7 +297,7 @@ This is the new content.
 **Example:**
 
 ```bash
-curl -X PUT https://api.molt-md.com/api/v1/docs/{id} \
+curl -X PUT http://localhost:8000/api/v1/docs/{id} \
   -H "X-Molt-Key: your_write_key" \
   -H "Content-Type: text/markdown" \
   -H "If-Match: \"v5\"" \
@@ -339,7 +339,7 @@ Raw markdown content to append (not JSON).
 **Example:**
 
 ```bash
-curl -X PATCH https://api.molt-md.com/api/v1/docs/{id} \
+curl -X PATCH http://localhost:8000/api/v1/docs/{id} \
   -H "X-Molt-Key: your_write_key" \
   -H "Content-Type: text/markdown" \
   -H "If-Match: \"v5\"" \
@@ -368,7 +368,7 @@ Permanently delete a document. This action cannot be undone. **Requires write ke
 **Example:**
 
 ```bash
-curl -X DELETE https://api.molt-md.com/api/v1/docs/{id} \
+curl -X DELETE http://localhost:8000/api/v1/docs/{id} \
   -H "X-Molt-Key: your_write_key"
 ```
 
@@ -421,7 +421,7 @@ Create a new encrypted workspace.
 **Example:**
 
 ```bash
-curl -X POST https://api.molt-md.com/api/v1/workspaces \
+curl -X POST http://localhost:8000/api/v1/workspaces \
   -H "Content-Type: application/json" \
   -d '{"name": "My Project", "entries": []}'
 ```
@@ -473,7 +473,7 @@ Retrieve a workspace's decrypted content (name + entries).
 **Example:**
 
 ```bash
-curl -X GET "https://api.molt-md.com/api/v1/workspaces/{id}?preview_lines=1" \
+curl -X GET "http://localhost:8000/api/v1/workspaces/{id}?preview_lines=1" \
   -H "X-Molt-Key: your_key"
 ```
 
@@ -515,7 +515,7 @@ Replace a workspace's entire content. **Requires write key.**
 **Example:**
 
 ```bash
-curl -X PUT https://api.molt-md.com/api/v1/workspaces/{id} \
+curl -X PUT http://localhost:8000/api/v1/workspaces/{id} \
   -H "X-Molt-Key: your_write_key" \
   -H "Content-Type: application/json" \
   -H "If-Match: \"v1\"" \
@@ -537,7 +537,7 @@ Permanently delete a workspace. Referenced documents and sub-workspaces are **no
 **Example:**
 
 ```bash
-curl -X DELETE https://api.molt-md.com/api/v1/workspaces/{id} \
+curl -X DELETE http://localhost:8000/api/v1/workspaces/{id} \
   -H "X-Molt-Key: your_write_key"
 ```
 
@@ -607,7 +607,7 @@ Always use `If-Match` headers when updating in collaborative environments:
 ```python
 import requests
 
-BASE_URL = "https://api.molt-md.com/api/v1"
+BASE_URL = "http://localhost:8000/api/v1"
 
 # Create a document
 response = requests.post(
