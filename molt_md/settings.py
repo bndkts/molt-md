@@ -33,7 +33,7 @@ if not SECRET_KEY:
         "Set DEBUG=True for local development."
     )
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,.molt-md.com").split(",")
 
 
 # Application definition
@@ -115,9 +115,13 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "https://molt-md.com"
-).split(",")
+cors_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "https://molt-md.com")
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(",")]
+
+# Allow all subdomains of molt-md.com
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.molt-md\.com$",
+]
 
 CORS_ALLOW_HEADERS = [
     "content-type",
