@@ -3,12 +3,13 @@ import uuid
 
 
 class Document(models.Model):
-    id: models.UUIDField = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # type: ignore[assignment]
-    content_encrypted: models.BinaryField = models.BinaryField()  # type: ignore[assignment]
-    nonce: models.BinaryField = models.BinaryField()  # type: ignore[assignment]
-    version: models.IntegerField = models.IntegerField(default=1)  # type: ignore[assignment]
-    last_accessed: models.DateTimeField = models.DateTimeField(auto_now=True)  # type: ignore[assignment]
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)  # type: ignore[assignment]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    content_encrypted = models.BinaryField()  # Encrypted with read key
+    nonce = models.BinaryField()
+    read_key_hash = models.BinaryField(null=True)  # SHA-256 hash of read key for verification
+    version = models.IntegerField(default=1)
+    last_accessed = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "documents"
@@ -18,3 +19,22 @@ class Document(models.Model):
 
     def __str__(self):
         return f"Document {self.id} (v{self.version})"
+
+
+class Workspace(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    content_encrypted = models.BinaryField()  # Encrypted JSON blob with read key
+    nonce = models.BinaryField()
+    read_key_hash = models.BinaryField(null=True)  # SHA-256 hash of read key for verification
+    version = models.IntegerField(default=1)
+    last_accessed = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "workspaces"
+        indexes = [
+            models.Index(fields=["last_accessed"]),
+        ]
+
+    def __str__(self):
+        return f"Workspace {self.id} (v{self.version})"
