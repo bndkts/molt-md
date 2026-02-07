@@ -126,6 +126,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_HEADERS = [
     "content-type",
     "x-molt-key",
+    "x-molt-workspace",
     "if-match",
     "accept",
 ]
