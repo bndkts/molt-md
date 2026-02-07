@@ -5,6 +5,8 @@ Uses AES-256-GCM for authenticated encryption.
 
 import os
 import base64
+import hashlib
+import hmac
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
 
@@ -33,7 +35,7 @@ def encrypt_content(content, raw_key):
 
     Args:
         content: String content to encrypt
-        raw_key: Raw bytes key (32 bytes)
+        raw_key: Raw bytes key (32 bytes) - should be the read key
 
     Returns:
         tuple: (ciphertext bytes, nonce bytes)
@@ -51,7 +53,7 @@ def decrypt_content(ciphertext, nonce, raw_key):
     Args:
         ciphertext: Encrypted bytes
         nonce: Nonce bytes used during encryption
-        raw_key: Raw bytes key (32 bytes)
+        raw_key: Raw bytes key (32 bytes) - should be the read key
 
     Returns:
         String: Decrypted content
@@ -76,3 +78,34 @@ def verify_key(ciphertext, nonce, raw_key):
         return True
     except (InvalidTag, Exception):
         return False
+
+
+def derive_read_key(write_key_b64):
+    """
+    Derive a read key from a write key using HMAC-SHA256.
+    
+    Args:
+        write_key_b64: Base64 URL-safe encoded write key
+        
+    Returns:
+        String: Base64 URL-safe encoded read key
+    """
+    write_key_raw = decode_key(write_key_b64)
+    # Use HMAC-SHA256 with the write key and a constant message
+    read_key_raw = hmac.new(write_key_raw, b"molt-read", hashlib.sha256).digest()
+    read_key_b64 = base64.urlsafe_b64encode(read_key_raw).decode()
+    return read_key_b64
+
+
+def hash_key(key_b64):
+    """
+    Generate SHA-256 hash of a key for storage/verification.
+    
+    Args:
+        key_b64: Base64 URL-safe encoded key
+        
+    Returns:
+        bytes: SHA-256 hash of the key
+    """
+    key_raw = decode_key(key_b64)
+    return hashlib.sha256(key_raw).digest()

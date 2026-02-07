@@ -32,7 +32,8 @@ class DocumentCreateResponseSerializer(serializers.Serializer):
     """Serializer for document creation response."""
 
     id = serializers.UUIDField()
-    key = serializers.CharField()
+    write_key = serializers.CharField()
+    read_key = serializers.CharField()
 
 
 class DocumentUpdateResponseSerializer(serializers.Serializer):
@@ -54,3 +55,41 @@ class ConflictErrorSerializer(serializers.Serializer):
 
     error = serializers.CharField()
     current_version = serializers.IntegerField()
+
+
+class WorkspaceSerializer(serializers.Serializer):
+    """Serializer for workspace content."""
+
+    name = serializers.CharField()
+    entries = serializers.ListField(child=serializers.DictField())
+
+
+class WorkspaceCreateSerializer(serializers.Serializer):
+    """Serializer for workspace creation requests."""
+
+    name = serializers.CharField()
+    entries = serializers.ListField(child=serializers.DictField(), default=list)
+
+
+class WorkspaceCreateResponseSerializer(serializers.Serializer):
+    """Serializer for workspace creation response."""
+
+    id = serializers.UUIDField()
+    write_key = serializers.CharField()
+    read_key = serializers.CharField()
+
+
+class WorkspaceDetailSerializer(serializers.Serializer):
+    """Serializer for detailed workspace responses with decrypted content."""
+
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    entries = serializers.ListField(child=serializers.DictField())
+    version = serializers.IntegerField()
+
+
+class WorkspaceUpdateResponseSerializer(serializers.Serializer):
+    """Serializer for workspace update response."""
+
+    success = serializers.BooleanField(default=True)
+    version = serializers.IntegerField()
