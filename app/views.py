@@ -32,7 +32,7 @@ from .encryption import (
     decrypt_content,
     verify_key,
 )
-from .throttling import CreateDocumentThrottle
+from .throttling import CreateDocumentThrottle, MonitoringThrottle
 
 
 # Maximum content size: 5 MB
@@ -83,7 +83,7 @@ def custom_exception_handler(exc, context):
 class HealthCheckView(APIView):
     """Health check endpoint."""
 
-    throttle_classes = []
+    throttle_classes = [MonitoringThrottle]
 
     def get(self, request):
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
@@ -355,3 +355,15 @@ class DocumentDetailView(APIView):
         document.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MetricsView(APIView):
+    """Simple metrics endpoint showing database statistics."""
+
+    throttle_classes = [MonitoringThrottle]
+
+    def get(self, request):
+        document_count = Document.objects.count()
+        return Response({
+            "documents": document_count
+        }, status=status.HTTP_200_OK)

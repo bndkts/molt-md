@@ -13,3 +13,13 @@ class CreateDocumentThrottle(AnonRateThrottle):
 
     rate = "10/min"
     scope = "create"
+
+
+class MonitoringThrottle(AnonRateThrottle):
+    """
+    Rate limit for monitoring endpoints (health check, metrics).
+    60 requests per minute per IP.
+    """
+
+    rate = "60/min"
+    scope = "monitoring"
