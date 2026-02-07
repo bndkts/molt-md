@@ -106,8 +106,9 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "60/min",
-        "create": "10/min",
+        "anon": os.environ.get("THROTTLE_RATE_ANON", "60/min"),
+        "create": os.environ.get("THROTTLE_RATE_CREATE", "10/min"),
+        "monitoring": os.environ.get("THROTTLE_RATE_MONITORING", "60/min"),
     },
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,

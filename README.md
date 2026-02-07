@@ -93,6 +93,9 @@ All endpoints are under `/api/v1/`:
 - `DATABASE_URL` - PostgreSQL connection string (optional, defaults to SQLite)
 - `ALLOWED_HOSTS` - Comma-separated list of allowed hosts (e.g., `example.com,api.example.com`)
 - `CORS_ALLOWED_ORIGINS` - Comma-separated list of allowed CORS origins (e.g., `https://example.com,https://app.example.com`)
+- `THROTTLE_RATE_ANON` - Rate limit for general API requests (default: `60/min`)
+- `THROTTLE_RATE_CREATE` - Rate limit for document creation (default: `10/min`)
+- `THROTTLE_RATE_MONITORING` - Rate limit for monitoring endpoints (default: `60/min`)
 - `DEBUG` - Set to `True` for development, `False` for production (default: `False`)
 
 ### Example Production Configuration

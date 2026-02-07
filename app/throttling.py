@@ -8,18 +8,18 @@ from rest_framework.throttling import AnonRateThrottle
 class CreateDocumentThrottle(AnonRateThrottle):
     """
     Stricter rate limit for document creation to prevent spam.
-    10 requests per minute per IP.
+    Default: 10 requests per minute per IP.
+    Configurable via THROTTLE_RATE_CREATE environment variable.
     """
 
-    rate = "10/min"
     scope = "create"
 
 
 class MonitoringThrottle(AnonRateThrottle):
     """
     Rate limit for monitoring endpoints (health check, metrics).
-    60 requests per minute per IP.
+    Default: 60 requests per minute per IP.
+    Configurable via THROTTLE_RATE_MONITORING environment variable.
     """
 
-    rate = "60/min"
     scope = "monitoring"
