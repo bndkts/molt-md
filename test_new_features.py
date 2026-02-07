@@ -4,7 +4,6 @@ Test script for the new features: Read/Write Keys, Workspaces, and Partial Fetch
 """
 
 import requests
-import json
 
 BASE_URL = "http://127.0.0.1:8000/api/v1"
 
@@ -399,6 +398,33 @@ def test_workspace_scoped_access():
     )
     assert response.status_code == 403, f"Expected 403, got {response.status_code}: {response.text}"
     print(f"   ✓ Write correctly rejected with workspace read key")
+    
+    # Write through workspace with WRITE key, then verify doc is still readable with its own key
+    print("\n6b. Writing through workspace with write key, then reading with doc key...")
+    response = requests.put(
+        f"{BASE_URL}/docs/{doc_id}",
+        data="# Updated Through Workspace\n\nModified via workspace write key.",
+        headers={
+            "X-Molt-Key": ws_write_key,
+            "X-Molt-Workspace": ws_id,
+            "Content-Type": "text/markdown"
+        }
+    )
+    assert response.status_code == 200, f"Failed to write through workspace: {response.text}"
+    # Now read with the document's own write key (must still work!)
+    response = requests.get(
+        f"{BASE_URL}/docs/{doc_id}",
+        headers={"X-Molt-Key": doc_write_key, "Accept": "application/json"}
+    )
+    assert response.status_code == 200, f"Doc unreadable after workspace PUT: {response.text}"
+    assert "Updated Through Workspace" in response.json()["content"]
+    # Also verify with the document's read key
+    response = requests.get(
+        f"{BASE_URL}/docs/{doc_id}",
+        headers={"X-Molt-Key": doc_read_key, "Accept": "application/json"}
+    )
+    assert response.status_code == 200, f"Doc unreadable with read key after workspace PUT: {response.text}"
+    print(f"   ✓ Write through workspace preserves document key access")
     
     # Try to delete through workspace with read key (should fail)
     print("\n7. Attempting to delete through workspace with read key (should fail)...")

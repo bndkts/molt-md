@@ -175,6 +175,10 @@ class DocumentDetailView(APIView):
         The read key is the actual encryption key.
         The write key is a wrapper that can derive the read key.
         
+        For legacy documents created before the dual-key migration
+        (read_key_hash is NULL), the provided key is treated as the
+        original single key with full write access.
+        
         Args:
             document: Document instance
             key_b64: Base64-encoded key (either write or read key)
@@ -187,6 +191,14 @@ class DocumentDetailView(APIView):
         Raises:
             PermissionDenied: If key is invalid or insufficient permissions
         """
+        # Legacy single-key documents (created before dual-key migration)
+        if document.read_key_hash is None:
+            try:
+                decrypt_content(document.content_encrypted, document.nonce, raw_key)
+                return "write"  # Legacy key always grants full access
+            except (InvalidTag, Exception):
+                raise PermissionDenied("Invalid encryption key.")
+        
         stored_hash = bytes(document.read_key_hash)
         
         # Try to derive read key from provided key (treating it as write key)
@@ -221,9 +233,14 @@ class DocumentDetailView(APIView):
     def _decrypt_document(self, document, key_b64, raw_key):
         """Helper to decrypt document content.
         
-        Handles both write keys (derives read key) and read keys (uses directly).
+        Handles write keys (derives read key), read keys (uses directly),
+        and legacy single-key documents (read_key_hash is NULL).
         """
         try:
+            # Legacy single-key documents
+            if document.read_key_hash is None:
+                return decrypt_content(document.content_encrypted, document.nonce, raw_key)
+            
             stored_hash = bytes(document.read_key_hash)
             
             # First try deriving read key (if it's a write key)
@@ -250,7 +267,9 @@ class DocumentDetailView(APIView):
         write access even if the stored key is a write key).
         
         Returns:
-            tuple: (content, access_level) or None if no workspace header
+            tuple: (content, access_level, doc_read_key_raw) or None if no workspace header.
+            doc_read_key_raw is the raw bytes of the document's read/encryption key,
+            needed for re-encrypting content on PUT/PATCH.
         """
         workspace_id = request.headers.get("X-Molt-Workspace")
         if not workspace_id:
@@ -295,6 +314,13 @@ class DocumentDetailView(APIView):
         
         # Decrypt document using the key from the workspace entry
         entry_raw_key = decode_key(entry_key_b64)
+        
+        # Legacy single-key documents
+        if document.read_key_hash is None:
+            content = decrypt_content(document.content_encrypted, document.nonce, entry_raw_key)
+            # For legacy docs, the entry key IS the encryption key
+            return content, ws_access, entry_raw_key
+        
         stored_doc_hash = bytes(document.read_key_hash)
         
         derived_doc_read_b64 = derive_read_key(entry_key_b64)
@@ -302,14 +328,16 @@ class DocumentDetailView(APIView):
         derived_doc_hash = hash_key(derived_doc_read_b64)
         
         if hmac.compare_digest(derived_doc_hash, stored_doc_hash):
+            # Entry key is a write key — use derived read key for decryption
             content = decrypt_content(document.content_encrypted, document.nonce, derived_doc_read_raw)
+            doc_read_key_raw = derived_doc_read_raw
         else:
+            # Entry key is a read key — use directly
             content = decrypt_content(document.content_encrypted, document.nonce, entry_raw_key)
+            doc_read_key_raw = entry_raw_key
         
         # Workspace-level permission overrides: read-only workspace downgrades access
-        access_level = ws_access
-        
-        return content, access_level
+        return content, ws_access, doc_read_key_raw
 
     def get(self, request, doc_id):
         """Read document content."""
@@ -318,7 +346,7 @@ class DocumentDetailView(APIView):
         # Check for workspace-scoped access
         ws_result = self._resolve_workspace_access(request, document, doc_id)
         if ws_result:
-            content, access_level = ws_result
+            content, access_level, _ = ws_result
         else:
             key_b64, raw_key = self._get_key_from_header(request)
             # Check key access (read or write is fine for GET)
@@ -388,11 +416,12 @@ class DocumentDetailView(APIView):
     def put(self, request, doc_id):
         """Update document content (replace)."""
         document = self._get_document(doc_id)
+        doc_read_key_raw = None
         
         # Check for workspace-scoped access
         ws_result = self._resolve_workspace_access(request, document, doc_id)
         if ws_result:
-            _, access_level = ws_result
+            _, access_level, doc_read_key_raw = ws_result
             if access_level != "write":
                 raise PermissionDenied("Read-only access. Write key required.")
             key_b64, raw_key = self._get_key_from_header(request)
@@ -443,9 +472,14 @@ class DocumentDetailView(APIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
-        # Encrypt new content with read key (derive from write key)
-        read_key_b64 = derive_read_key(key_b64)
-        read_key_raw = decode_key(read_key_b64)
+        # Encrypt new content with the document's read key
+        if doc_read_key_raw:
+            # Workspace-scoped: use the document's own read key from the entry
+            read_key_raw = doc_read_key_raw
+        else:
+            # Direct access: derive read key from the provided write key
+            read_key_b64 = derive_read_key(key_b64)
+            read_key_raw = decode_key(read_key_b64)
         ciphertext, nonce = encrypt_content(new_content, read_key_raw)
 
         # Update document with atomic version check
@@ -473,11 +507,12 @@ class DocumentDetailView(APIView):
     def patch(self, request, doc_id):
         """Append to document content."""
         document = self._get_document(doc_id)
+        doc_read_key_raw = None
         
         # Check for workspace-scoped access
         ws_result = self._resolve_workspace_access(request, document, doc_id)
         if ws_result:
-            existing_content, access_level = ws_result
+            existing_content, access_level, doc_read_key_raw = ws_result
             if access_level != "write":
                 raise PermissionDenied("Read-only access. Write key required.")
             key_b64, raw_key = self._get_key_from_header(request)
@@ -532,9 +567,14 @@ class DocumentDetailView(APIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
-        # Encrypt new content with read key (derive from write key)
-        read_key_b64 = derive_read_key(key_b64)
-        read_key_raw = decode_key(read_key_b64)
+        # Encrypt new content with the document's read key
+        if doc_read_key_raw:
+            # Workspace-scoped: use the document's own read key from the entry
+            read_key_raw = doc_read_key_raw
+        else:
+            # Direct access: derive read key from the provided write key
+            read_key_b64 = derive_read_key(key_b64)
+            read_key_raw = decode_key(read_key_b64)
         ciphertext, nonce = encrypt_content(new_content, read_key_raw)
 
         # Update document with atomic version check
@@ -566,7 +606,7 @@ class DocumentDetailView(APIView):
         # Check for workspace-scoped access
         ws_result = self._resolve_workspace_access(request, document, doc_id)
         if ws_result:
-            _, access_level = ws_result
+            _, access_level, _ = ws_result
             if access_level != "write":
                 raise PermissionDenied("Read-only access. Write key required.")
         else:
