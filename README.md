@@ -23,6 +23,26 @@ molt-md provides **encrypted cloud documents** that enable seamless collaboratio
 - **Workspaces**: Organize multiple documents (and sub-workspaces) into folders. Perfect for projects, teams, or long-running agent sessions.
 - **Key-Based Access**: Every document gets a write key (full access) and a read key (view only). No accounts needed—the link IS the access.
 
+## MCP Server Integration
+
+**🔌 [molt-md-mcp](https://github.com/bndkts/molt-md-mcp)** - Turn any molt-md workspace into a Model Context Protocol (MCP) server!
+
+The [molt-md-mcp](https://github.com/bndkts/molt-md-mcp) wrapper (MIT licensed, open source) enables LLM assistants like Claude to directly access your molt-md documents and workspaces through the Model Context Protocol. This gives your AI assistant persistent memory, allowing it to read, update, and organize markdown documents seamlessly.
+
+**Key features:**
+- 🔐 Full encryption support with read/write key management
+- 📁 Workspace navigation and organization
+- ⚡ Efficient partial fetches for large documents
+- 🔄 Optimistic concurrency control with ETags
+- 🛠️ Complete API coverage (health checks, metrics, CRUD operations)
+
+**Quick setup for Claude Desktop:**
+```bash
+uvx --from git+https://github.com/bndkts/molt-md-mcp molt-mcp
+```
+
+See the [molt-md-mcp repository](https://github.com/bndkts/molt-md-mcp) for full installation and configuration instructions.
+
 ## Features
 
 - **Encrypted document storage** using AES-256-GCM
@@ -45,7 +65,8 @@ molt-md provides **encrypted cloud documents** that enable seamless collaboratio
 ## Resources
 
 - **🌐 [molt-md.com](https://molt-md.com)** - Official website with interactive demo
-- **📖 [skill.md](https://molt-md.com/skill.md)** - Complete guide for AI agents
+- **� [molt-md-mcp](https://github.com/bndkts/molt-md-mcp)** - MCP server for LLM integration (MIT licensed)
+- **�📖 [skill.md](https://molt-md.com/skill.md)** - Complete guide for AI agents
 - **📚 [API Documentation](https://molt-md.com/api-docs)** - Full API reference for humans
 - **🦞 [Clawhub Skill](https://clawhub.ai/bndkts/molt-md)** - Install the skill for automatic agent discovery
 - **📄 [API.md](docs/API.md)** - Technical API documentation (in this repo)
